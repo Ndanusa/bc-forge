@@ -21,7 +21,6 @@ import {
   stringToScVal,
   u32ToScVal,
   scValToNative,
-  hashToScVal,
 } from './utils';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -282,18 +281,6 @@ export class bcForgeClient {
    */
   async unpause(source: Keypair): Promise<TransactionResult> {
     return this.invokeContract('unpause', [], source);
-  }
-
-  /**
-   * Upgrades the contract to a new WASM hash. Admin-only.
-   *
-   * @param newWasmHash - 32-byte hex string or Buffer of the new WASM hash
-   * @param source      - Admin keypair
-   */
-  async upgrade(newWasmHash: string | Buffer, source: Keypair): Promise<TransactionResult> {
-    return this.invokeContract('upgrade', [
-      hashToScVal(newWasmHash),
-    ], source);
   }
 
   // ─── Internal Helpers ────────────────────────────────────────────────────
