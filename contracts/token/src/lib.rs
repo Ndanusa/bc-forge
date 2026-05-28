@@ -134,21 +134,35 @@ impl BcForgeToken {
     }
 
     fn read_allowance(env: &Env, from: &Address, spender: &Address) -> i128 {
-    let allowance_info: AllowanceInfo = env.storage()
-        .persistent()
-        .get(&DataKey::Allowance(from.clone(), spender.clone()))
-        .unwrap_or(AllowanceInfo { amount: 0, exp_ledger: 0 });
-    
-    // Check if allowance has expired
-    if allowance_info.exp_ledger > 0 {
-        let current_ledger = env.ledger().sequence();
-        if current_ledger > allowance_info.exp_ledger as u64 {
-            return 0; // Allowance expired
+        let allowance_info: AllowanceInfo = env.storage()
+            .persistent()
+            .get(&DataKey::Allowance(from.clone(), spender.clone()))
+            .unwrap_or(AllowanceInfo { amount: 0, exp_ledger: 0 });
+        
+        // Check if allowance has expired
+        if allowance_info.exp_ledger > 0 {
+            let current_ledger = env.ledger().sequence();
+            if current_ledger > allowance_info.exp_ledger as u64 {
+                return 0; // Allowance expired
+            }
         }
+        
+        allowance_info.amount
+        if let Some(exp_ledger) = env
+            .storage()
+            .persistent()
+            .get::<_, u32>(&DataKey::AllowanceExp(from.clone(), spender.clone()))
+        {
+            if exp_ledger > 0 && env.ledger().sequence() > exp_ledger {
+                return 0;
+            }
+        }
+
+        env.storage()
+            .persistent()
+            .get(&DataKey::Allowance(from.clone(), spender.clone()))
+            .unwrap_or(0)
     }
-    
-    allowance_info.amount
-}
 
     fn write_allowance(env: &Env, from: &Address, spender: &Address, amount: i128, exp: u32) {
         let allowance_info = AllowanceInfo { amount, exp_ledger: exp };
