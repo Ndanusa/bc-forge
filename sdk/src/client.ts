@@ -39,6 +39,8 @@ export interface bcForgeClientConfig {
   networkPassphrase: string;
   /** Deployed bc-forge token contract ID */
   contractId: string;
+  /** Optional custom HTTP headers to send with RPC requests (e.g., API keys) */
+  rpcHeaders?: Record<string, string>;
 }
 
 export interface TransactionResult {
@@ -70,7 +72,8 @@ export class bcForgeClient {
     this.rpcUrl = config.rpcUrl;
     this.networkPassphrase = config.networkPassphrase;
     this.contractId = config.contractId;
-    this.server = new SorobanRpc.Server(this.rpcUrl);
+    const serverOptions = config.rpcHeaders ? { headers: config.rpcHeaders } : undefined;
+    this.server = new SorobanRpc.Server(this.rpcUrl, serverOptions);
     this.contract = new Contract(this.contractId);
   }
 
