@@ -154,4 +154,28 @@ program
     }
   });
 
+program
+  .command('upgrade <wasmHash>')
+  .description('Upgrade the contract to a new wasm hash')
+  .action(async (wasmHash) => {
+    try {
+      const secret = getSecretKey();
+      if (!secret) throw new Error('Secret key not configured');
+      
+      const source = Keypair.fromSecret(secret);
+      const client = new bcForgeClient(getClientConfig());
+      
+      console.log(chalk.yellow(`Upgrading contract to Wasm hash ${wasmHash}...`));
+      const result = await client.upgrade(Buffer.from(wasmHash, 'hex'), source);
+      
+      if (result.success) {
+        console.log(chalk.green(`✓ Contract upgraded. TX: ${result.hash}`));
+      } else {
+        console.log(chalk.red('✗ Upgrade failed.'));
+      }
+    } catch (err: any) {
+      console.error(chalk.red(`Error: ${err.message}`));
+    }
+  });
+
 program.parse();
